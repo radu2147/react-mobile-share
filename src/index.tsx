@@ -1,19 +1,81 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import isNil from "lodash/isNil";
+import { AsyncProps, SyncProps, SyncShareReturn, AsyncShareReturn } from "./types";
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+type State = {
+  loading: boolean,
+  error: Error | null
+}
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+const useMobileShareAsync = ({
+    generateURL, title, text
+}: AsyncProps): AsyncShareReturn => {
+    const [fetchState, setFetchState] = React.useState<State>({loading: false, error: null});
+
+    const share = React.useCallback(async () => {
+        setFetchState({loading: true, error: null});
+        generateURL()
+            .then(async ({ url }) => {
+                setFetchState({loading: false, error: null});
+                await navigator.share({
+                    url,
+                    title,
+                    text
+                });
+            })
+            .catch((e) => {
+                console.error(e);
+                const err = e instanceof Error ? e : Error("Somthing went wrong: " + e);
+                setFetchState({error: err, loading: false})
+            });
+    }, [setFetchState, generateURL, title, text]);
+
+    if(isNil(navigator) || !navigator.canShare() || !isNil(fetchState.error)) {
+      return {share: undefined, loading: false, error: fetchState.error};
+    }
+
+    return {share, ...fetchState};
+};
+
+const useMobileShare = ({url, title, text}: SyncProps): SyncShareReturn => {
+
+  const [error, setError] = React.useState<Error | null>(null);
+
+  const share = React.useCallback(async () => {
+      try {
+          await navigator.share({
+              url,
+              title,
+              text
+          });
+      } catch (e) {
+          console.error(e);
+          if(e instanceof Error){
+            setError(e);
+          }
+          setError(Error("Something went wrong: " + e));
+      }
+  }, [url, title, text]);
+
+  if(isNil(navigator) || !navigator.canShare() || !isNil(error)) {
+    return {share: undefined, error};
+  }
+
+  return {share, error};
+}
+
+const MobileShareWrapper = (props: SyncProps & AsyncProps & {children: Array<React.ReactElement>}) => {
+  const { share } = useMobileShare(props);
+
+  const handleOnClick = React.useCallback((onClick?: (e: any) => any) => (e: any) => {
+    onClick?.(e);
+    share?.();
+  }, [share]);
+
+  return props.children.map((child) => React.cloneElement(child, {
+    ...child.props,
+    onClick: handleOnClick(child.props.onClick),
+  }));
+};
+
+export {useMobileShareAsync, useMobileShare, MobileShareWrapper};
