@@ -1,81 +1,84 @@
-import React from "react";
-import isNil from "lodash/isNil";
-import { AsyncProps, SyncProps, SyncShareReturn, AsyncShareReturn } from "./types";
+import React from 'react'
+import isNil from 'lodash/isNil'
+import { AsyncProps, SyncProps, SyncShareReturn, AsyncShareReturn } from './types'
 
 type State = {
-  loading: boolean,
+  loading: boolean
   error: Error | null
 }
 
-const useMobileShareAsync = ({
-    generateURL, title, text
-}: AsyncProps): AsyncShareReturn => {
-    const [fetchState, setFetchState] = React.useState<State>({loading: false, error: null});
-
-    const share = React.useCallback(async () => {
-        setFetchState({loading: true, error: null});
-        generateURL()
-            .then(async ({ url }) => {
-                setFetchState({loading: false, error: null});
-                await navigator.share({
-                    url,
-                    title,
-                    text
-                });
-            })
-            .catch((e) => {
-                console.error(e);
-                const err = e instanceof Error ? e : Error("Somthing went wrong: " + e);
-                setFetchState({error: err, loading: false})
-            });
-    }, [setFetchState, generateURL, title, text]);
-
-    if(isNil(navigator) || !navigator.canShare() || !isNil(fetchState.error)) {
-      return {share: undefined, loading: false, error: fetchState.error};
-    }
-
-    return {share, ...fetchState};
-};
-
-const useMobileShare = ({url, title, text}: SyncProps): SyncShareReturn => {
-
-  const [error, setError] = React.useState<Error | null>(null);
+const useMobileShareAsync = ({ generateURL, title, text }: AsyncProps): AsyncShareReturn => {
+  const [fetchState, setFetchState] = React.useState<State>({ loading: false, error: null })
 
   const share = React.useCallback(async () => {
-      try {
-          await navigator.share({
-              url,
-              title,
-              text
-          });
-      } catch (e) {
-          console.error(e);
-          if(e instanceof Error){
-            setError(e);
-          }
-          setError(Error("Something went wrong: " + e));
-      }
-  }, [url, title, text]);
+    setFetchState({ loading: true, error: null })
+    generateURL()
+      .then(async ({ url }) => {
+        setFetchState({ loading: false, error: null })
+        await navigator.share({
+          url,
+          title,
+          text,
+        })
+      })
+      .catch((e) => {
+        console.error(e)
+        const err = e instanceof Error ? e : Error('Somthing went wrong: ' + e)
+        setFetchState({ error: err, loading: false })
+      })
+  }, [setFetchState, generateURL, title, text])
 
-  if(isNil(navigator) || !navigator.canShare() || !isNil(error)) {
-    return {share: undefined, error};
+  if (isNil(navigator) || !navigator.canShare() || !isNil(fetchState.error)) {
+    return { share: undefined, loading: false, error: fetchState.error }
   }
 
-  return {share, error};
+  return { share, ...fetchState }
 }
 
-const MobileShareWrapper = (props: SyncProps & AsyncProps & {children: Array<React.ReactElement>}) => {
-  const { share } = useMobileShare(props);
+const useMobileShare = ({ url, title, text }: SyncProps): SyncShareReturn => {
+  const [error, setError] = React.useState<Error | null>(null)
 
-  const handleOnClick = React.useCallback((onClick?: (e: any) => any) => (e: any) => {
-    onClick?.(e);
-    share?.();
-  }, [share]);
+  const share = React.useCallback(async () => {
+    try {
+      await navigator.share({
+        url,
+        title,
+        text,
+      })
+    } catch (e) {
+      console.error(e)
+      if (e instanceof Error) {
+        setError(e)
+      }
+      setError(Error('Something went wrong: ' + e))
+    }
+  }, [url, title, text])
 
-  return props.children.map((child) => React.cloneElement(child, {
-    ...child.props,
-    onClick: handleOnClick(child.props.onClick),
-  }));
-};
+  if (isNil(navigator) || !navigator.canShare() || !isNil(error)) {
+    return { share: undefined, error }
+  }
 
-export {useMobileShareAsync, useMobileShare, MobileShareWrapper};
+  return { share, error }
+}
+
+const MobileShareWrapper = (props: SyncProps & { children: Array<React.ReactElement> }) => {
+  const { share } = useMobileShare(props)
+
+  const handleOnClick = React.useCallback(
+    (onClick?: (e: React.MouseEvent<HTMLElement>) => void) =>
+      (e: React.MouseEvent<HTMLElement>) => {
+        onClick?.(e)
+        share?.()
+      },
+    [share],
+  )
+
+  return props.children.map((child) =>
+    React.cloneElement(child, {
+      ...child.props,
+      onClick: handleOnClick(child.props.onClick),
+    }),
+  )
+}
+
+export { useMobileShareAsync, useMobileShare, MobileShareWrapper }
