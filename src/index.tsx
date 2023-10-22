@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import isNil from 'lodash/isNil'
 import { AsyncProps, SyncProps, SyncShareReturn, AsyncShareReturn } from './types'
 
@@ -9,6 +9,14 @@ type State = {
 
 const useMobileShareAsync = ({ generateURL, title, text }: AsyncProps): AsyncShareReturn => {
   const [fetchState, setFetchState] = React.useState<State>({ loading: false, error: null })
+
+  if (isNil(navigator) || !navigator.canShare()) {
+    return {
+      share: undefined,
+      loading: false,
+      error: null,
+    }
+  }
 
   const share = React.useCallback(async () => {
     setFetchState({ loading: true, error: null })
@@ -22,14 +30,13 @@ const useMobileShareAsync = ({ generateURL, title, text }: AsyncProps): AsyncSha
         })
       })
       .catch((e) => {
-        console.error(e)
-        const err = e instanceof Error ? e : Error('Somthing went wrong: ' + e)
+        const err = e instanceof Error ? e : new Error('Somthing went wrong: ' + e)
         setFetchState({ error: err, loading: false })
       })
   }, [setFetchState, generateURL, title, text])
 
-  if (isNil(navigator) || !navigator.canShare() || !isNil(fetchState.error)) {
-    return { share: undefined, loading: false, error: fetchState.error }
+  if (!isNil(fetchState.error)) {
+    return { share, loading: false, error: fetchState.error }
   }
 
   return { share, ...fetchState }
@@ -37,6 +44,10 @@ const useMobileShareAsync = ({ generateURL, title, text }: AsyncProps): AsyncSha
 
 const useMobileShare = ({ url, title, text }: SyncProps): SyncShareReturn => {
   const [error, setError] = React.useState<Error | null>(null)
+
+  if (isNil(navigator) || !navigator.canShare()) {
+    return { share: undefined, error: null }
+  }
 
   const share = React.useCallback(async () => {
     try {
@@ -46,23 +57,24 @@ const useMobileShare = ({ url, title, text }: SyncProps): SyncShareReturn => {
         text,
       })
     } catch (e) {
-      console.error(e)
       if (e instanceof Error) {
         setError(e)
+      } else {
+        setError(new Error('Something went wrong: ' + e))
       }
-      setError(Error('Something went wrong: ' + e))
     }
   }, [url, title, text])
 
-  if (isNil(navigator) || !navigator.canShare() || !isNil(error)) {
-    return { share: undefined, error }
-  }
-
-  return { share, error }
+  return { share, error: error ?? null }
 }
 
-const MobileShareWrapper = (props: SyncProps & { children: Array<React.ReactElement> }) => {
-  const { share } = useMobileShare(props)
+const MobileShareWrapper = (
+  props: SyncProps & {
+    children: Array<React.ReactElement>
+    renderError: (e: Error) => React.ReactElement
+  },
+) => {
+  const { share, error } = useMobileShare(props)
 
   const handleOnClick = React.useCallback(
     (onClick?: (e: React.MouseEvent<HTMLElement>) => void) =>
@@ -73,6 +85,10 @@ const MobileShareWrapper = (props: SyncProps & { children: Array<React.ReactElem
     [share],
   )
 
+  if (error) {
+    return props.renderError(error)
+  }
+
   return props.children.map((child) =>
     React.cloneElement(child, {
       ...child.props,
@@ -81,4 +97,38 @@ const MobileShareWrapper = (props: SyncProps & { children: Array<React.ReactElem
   )
 }
 
-export { useMobileShareAsync, useMobileShare, MobileShareWrapper }
+const MobileShareWrapperAsync = (
+  props: AsyncProps & {
+    children: Array<React.ReactElement>
+    renderLoading: () => React.ReactElement
+    renderError: (e: Error) => React.ReactElement
+  },
+) => {
+  const { share, loading, error } = useMobileShareAsync(props)
+
+  const handleOnClick = React.useCallback(
+    (onClick?: (e: React.MouseEvent<HTMLElement>) => void) =>
+      (e: React.MouseEvent<HTMLElement>) => {
+        onClick?.(e)
+        share?.()
+      },
+    [share],
+  )
+
+  if (loading) {
+    return props.renderLoading()
+  }
+
+  if (error) {
+    return props.renderError(error)
+  }
+
+  return props.children.map((child) =>
+    React.cloneElement(child, {
+      ...child.props,
+      onClick: handleOnClick(child.props.onClick),
+    }),
+  )
+}
+
+export { useMobileShareAsync, useMobileShare, MobileShareWrapper, MobileShareWrapperAsync }

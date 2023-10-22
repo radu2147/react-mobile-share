@@ -1,6 +1,6 @@
 type BaseProps = {
   title: string
-  text: string
+  text?: string
 }
 
 export type AsyncProps = BaseProps & {
