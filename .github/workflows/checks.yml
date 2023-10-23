@@ -1,4 +1,4 @@
-name: Npm package
+name: Checks
 
 on: 
   release:
