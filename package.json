@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/user-event": "^13.5.0",
     "@types/node": "^16.18.58",
     "@types/react": "^18.2.28",
     "@types/react-dom": "^18.2.13",
@@ -14,10 +13,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "lint": "npx eslint src/**/*.{ts,tsx} tests/**/*.ts && npx tsc",
-    "lint:fix": "npm run format && npx eslint --fix 'src/**/*.{ts,tsx}' 'tests/**/*.ts'",
+    "lint": "npx eslint src/**/*.{ts,tsx} tests/**/*.tsx && npx tsc",
+    "lint:fix": "npm run format && npx eslint --fix 'src/**/*.{ts,tsx}' 'tests/**/*.tsx'",
     "test": "npx jest",
-    "format": "npx prettier --write 'src/**/*.{js,jsx,ts,tsx,css,md,json}' 'tests/**/*.ts' --config ./.prettierrc",
+    "format": "npx prettier --write 'src/**/*.{js,jsx,ts,tsx,css,md,json}' 'tests/**/*.tsx' --config ./.prettierrc",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "eject": "react-scripts eject"
@@ -41,8 +40,10 @@
     ]
   },
   "devDependencies": {
+    "@testing-library/dom": "^9.3.3",
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.5.1",
     "@types/jest": "^29.5.6",
     "@types/lodash": "^4.14.199",
     "@typescript-eslint/eslint-plugin": "^6.8.0",

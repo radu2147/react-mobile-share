@@ -30,7 +30,7 @@ const useMobileShareAsync = ({ generateURL, title, text }: AsyncProps): AsyncSha
         })
       })
       .catch((e) => {
-        const err = e instanceof Error ? e : new Error('Somthing went wrong: ' + e)
+        const err = e instanceof Error ? e : new Error('Something went wrong: ' + e)
         setFetchState({ error: err, loading: false })
       })
   }, [setFetchState, generateURL, title, text])
@@ -63,15 +63,15 @@ const useMobileShare = ({ url, title, text }: SyncProps): SyncShareReturn => {
         setError(new Error('Something went wrong: ' + e))
       }
     }
-  }, [url, title, text])
+  }, [url, title, text, setError])
 
-  return { share, error: error ?? null }
+  return { share, error }
 }
 
 const MobileShareWrapper = (
   props: SyncProps & {
-    children: Array<React.ReactElement>
-    renderError: (e: Error) => React.ReactElement
+    children: Array<React.ReactElement> | React.ReactElement
+    renderError?: (e: Error) => React.ReactElement
   },
 ) => {
   const { share, error } = useMobileShare(props)
@@ -86,22 +86,26 @@ const MobileShareWrapper = (
   )
 
   if (error) {
-    return props.renderError(error)
+    return <>{props.renderError?.(error)}</>
   }
 
-  return props.children.map((child) =>
-    React.cloneElement(child, {
-      ...child.props,
-      onClick: handleOnClick(child.props.onClick),
-    }),
+  return (
+    <>
+      {React.Children.map(props.children, (child) =>
+        React.cloneElement(child, {
+          ...child.props,
+          onClick: handleOnClick(child.props.onClick),
+        }),
+      )}
+    </>
   )
 }
 
 const MobileShareWrapperAsync = (
   props: AsyncProps & {
-    children: Array<React.ReactElement>
+    children: Array<React.ReactElement> | React.ReactElement
     renderLoading: () => React.ReactElement
-    renderError: (e: Error) => React.ReactElement
+    renderError?: (e: Error) => React.ReactElement
   },
 ) => {
   const { share, loading, error } = useMobileShareAsync(props)
@@ -120,14 +124,18 @@ const MobileShareWrapperAsync = (
   }
 
   if (error) {
-    return props.renderError(error)
+    return <>{props.renderError?.(error)}</>
   }
 
-  return props.children.map((child) =>
-    React.cloneElement(child, {
-      ...child.props,
-      onClick: handleOnClick(child.props.onClick),
-    }),
+  return (
+    <>
+      {React.Children.map(props.children, (child) =>
+        React.cloneElement(child, {
+          ...child.props,
+          onClick: handleOnClick(child.props.onClick),
+        }),
+      )}
+    </>
   )
 }
 
