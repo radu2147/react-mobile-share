@@ -8,14 +8,14 @@ A small package developed on top of mobile's built-in share api (See [Web share 
 
 ### Install
 
-'''
+```
 npm i -D react-mweb-share
 yarn add -D react-mweb-share
-'''
+```
 
 ### Examples
 
-'''
+```
 import { useMobileShare } from 'react-mweb-share';
 
 const Button = ({url}: Props) -> {
@@ -26,7 +26,7 @@ const Button = ({url}: Props) -> {
         </button>
     );
 }
-'''
+```
 
 ### License
 [MIT](LICENSE)
