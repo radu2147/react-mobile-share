@@ -1,7 +1,6 @@
 {
-  "name": "my-app",
+  "name": "react-mweb-share",
   "version": "0.1.0",
-  "private": true,
   "dependencies": {
     "@types/node": "^16.18.58",
     "@types/react": "^18.2.28",
