@@ -1,8 +1,6 @@
 name: Checks
 
-on: 
-  release:
-    types: [created]
+on:
   push: 
     branches:
       - main
@@ -18,16 +16,16 @@ jobs:
       - run: npm install
       - run: npm run lint
       - run: npm run test
-  publish-npm:
+  release:
     needs: check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v2
+      - uses: CupOfTea696/gh-action-auto-release@v1.0.0
         with:
-          node-version: 16
-          registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: npm publish --access public
+          title: "Release: $version"
+          tag: "v$semver"
+          draft: false
+          regex: "/^Release: #{semver}$/i"
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
