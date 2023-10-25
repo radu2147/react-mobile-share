@@ -3,6 +3,7 @@
 A small package developed on top of mobile's built-in share api (See [Web share api](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share)). It has support for both sync share operations (when the url is known already), as well as async (e.g. to be used for shortlink generation)
 ### Features
 
+- [X] Full behaviour customization
 - [X] Sync share support wrapper component
 - [X] Sync share support hook
 - [X] Async share support wrapper component
@@ -66,6 +67,28 @@ const Button = ({url}: {url: string}) => {
                 Share!
             </button>
         </MobileShareWrapper>
+    );
+}
+```
+
+Async wrapper component:
+
+```
+import * as React from 'react';
+import { MobileShareAsyncWrapper } from 'react-mweb-share';
+
+const Button = () => {
+    const generateURL = new Promise((res) => res({url: "https://radu2147.github.io"}));
+    const [showDialog, setShowDialog] = React.useState(false);
+    return (
+        <>
+            <MobileShareAsyncWrapper generateURL={generateURL} title={"Howdy"} onLoad={() => setShowDialog(true)} onSuccess={() => setShowDialog(false)}>
+                <button onClick={share}>
+                    Share!
+                </button>
+            </MobileShareAsyncWrapper>
+            <Dialog visible={showDialog} toggleDialog={() => setShowDialog(!showDialog)}/>
+        </>
     );
 }
 ```

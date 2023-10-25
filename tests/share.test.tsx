@@ -70,10 +70,14 @@ describe('MobileShareWrapper', () => {
     window.navigator.share = jest.fn(() => {
       throw 'Test error'
     })
+    const onError = jest.fn()
+    const onSuccess = jest.fn()
     const { getByTestId } = render(
       <MobileShareWrapper
         title='Test'
         url='https://example.com'
+        onError={onError}
+        onSuccess={onSuccess}
         renderError={(e) => <p data-testid='error'>{e.message}</p>}
       >
         <div data-testid='test' onClick={() => {}}>
@@ -88,6 +92,8 @@ describe('MobileShareWrapper', () => {
 
     expect(() => getByTestId('test')).toThrow()
     expect(getByTestId('error').innerHTML).toEqual('Something went wrong: Test error')
+    expect(onError).toHaveBeenCalled()
+    expect(onSuccess).not.toHaveBeenCalled()
   })
 
   test('Native share throws error', async () => {
@@ -147,11 +153,16 @@ describe('MobileShareWrapperAsync', () => {
 
   test('Native share throws error', async () => {
     window.navigator.share = jest.fn()
+    const onError = jest.fn()
+    const onSuccess = jest.fn()
+
     const urlPromise = () => new Promise<{ url: string }>((_, rej) => rej(new Error('Test error')))
     const { getByTestId } = render(
       <MobileShareWrapperAsync
         title='Test'
         generateURL={urlPromise}
+        onError={onError}
+        onSuccess={onSuccess}
         renderLoading={() => <p data-testid='loading'>Loading</p>}
         renderError={(e) => <p data-testid='error'>{e.message}</p>}
       >
@@ -168,10 +179,15 @@ describe('MobileShareWrapperAsync', () => {
     expect(() => getByTestId('test')).toThrow()
     expect(() => getByTestId('loading')).toThrow()
     expect(getByTestId('error').innerHTML).toEqual('Test error')
+    expect(onError).toHaveBeenCalled()
+    expect(onSuccess).not.toHaveBeenCalled()
   })
 
   test('Native share loading state', async () => {
     window.navigator.share = jest.fn()
+    const onLoad = jest.fn()
+    const onSuccess = jest.fn()
+
     const urlPromise = () =>
       new Promise<{ url: string }>((res) =>
         setTimeout(() => {
@@ -182,6 +198,8 @@ describe('MobileShareWrapperAsync', () => {
       <MobileShareWrapperAsync
         title='Test'
         generateURL={urlPromise}
+        onLoad={onLoad}
+        onSuccess={onSuccess}
         renderLoading={() => <p data-testid='loading'>Loading</p>}
         renderError={(e) => <p data-testid='error'>{e.message}</p>}
       >
@@ -196,9 +214,13 @@ describe('MobileShareWrapperAsync', () => {
     })
 
     expect(getByTestId('loading')).toBeDefined()
+    expect(onLoad).toHaveBeenCalled()
     expect(() => getByTestId('error')).toThrow()
 
-    await waitFor(() => expect(getByTestId('test').innerHTML).toEqual('Click'))
+    await waitFor(() => {
+      expect(getByTestId('test').innerHTML).toEqual('Click')
+      expect(onSuccess).toHaveBeenCalled()
+    })
   })
 })
 
