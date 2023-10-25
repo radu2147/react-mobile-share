@@ -16,10 +16,11 @@ yarn add -D react-mweb-share
 ### Examples
 
 ```
+import * as React from 'react';
 import { useMobileShare } from 'react-mweb-share';
 
-const Button = ({url}: Props) -> {
-    const { share } = useMobileShare({url, title: "Howdy});
+const Button = ({url}: Props) => {
+    const { share } = useMobileShare({url, title: "Howdy"});
     return (
         <button onClick={share}>
             Share!
