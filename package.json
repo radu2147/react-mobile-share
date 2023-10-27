@@ -1,6 +1,6 @@
 {
   "name": "react-mweb-share",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "dependencies": {
     "@types/node": "^16.18.58",
     "@types/react": "^18.2.28",
@@ -56,5 +56,20 @@
     "jest-environment-jsdom": "^29.7.0",
     "prettier": "^3.0.3",
     "ts-jest": "^29.1.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/radu2147/react-mobile-share"
+  },
+  "keywords": [
+    "typescript",
+    "Reactjs",
+    "Next.js",
+    "react-web-share",
+    "react-mweb-share",
+    "react-share-mobile",
+    "react-mobile-share",
+    "mobile-share",
+    "share"
+  ]
 }

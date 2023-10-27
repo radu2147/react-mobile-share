@@ -31,6 +31,7 @@ const useMobileShareAsync = ({ generateURL, title, text }: AsyncProps): AsyncSha
       loading: false,
       error: null,
       success: false,
+      isSupported: false,
     }
   }
 
@@ -52,7 +53,7 @@ const useMobileShareAsync = ({ generateURL, title, text }: AsyncProps): AsyncSha
       })
   }, [setFetchState, generateURL, title, text])
 
-  return { share, ...fetchState }
+  return { share, isSupported: true, ...fetchState }
 }
 
 const useMobileShare = ({ url, title, text }: SyncProps): SyncShareReturn => {
@@ -62,7 +63,7 @@ const useMobileShare = ({ url, title, text }: SyncProps): SyncShareReturn => {
   })
 
   if (isNil(navigator) || !navigator.canShare()) {
-    return { share: undefined, error: null, success: false }
+    return { share: undefined, error: null, success: false, isSupported: false }
   }
 
   const share = React.useCallback(async () => {
@@ -82,17 +83,21 @@ const useMobileShare = ({ url, title, text }: SyncProps): SyncShareReturn => {
     }
   }, [url, title, text, setShareState])
 
-  return { share, ...shareState }
+  return { share, isSupported: true, ...shareState }
 }
 
 const MobileShareWrapper = (props: SyncWrapperProps) => {
-  const { share, error, success } = useMobileShare(props)
+  const { share, error, success, isSupported } = useMobileShare(props)
 
   const handleOnClick = React.useCallback(
     (onClick?: (e: React.MouseEvent<HTMLElement>) => void) =>
       async (e: React.MouseEvent<HTMLElement>) => {
         onClick?.(e)
-        await share?.()
+        if (isSupported) {
+          await share?.()
+        } else {
+          console.warn('Native share not supported on this device')
+        }
       },
     [share],
   )
@@ -121,7 +126,7 @@ const MobileShareWrapper = (props: SyncWrapperProps) => {
 }
 
 const MobileShareWrapperAsync = (props: AsyncWrapperProps) => {
-  const { share, loading, error, success } = useMobileShareAsync({
+  const { share, loading, error, success, isSupported } = useMobileShareAsync({
     generateURL: props.generateURL,
     title: props.title,
     text: props.text,
@@ -129,9 +134,13 @@ const MobileShareWrapperAsync = (props: AsyncWrapperProps) => {
 
   const handleOnClick = React.useCallback(
     (onClick?: (e: React.MouseEvent<HTMLElement>) => void) =>
-      (e: React.MouseEvent<HTMLElement>) => {
+      async (e: React.MouseEvent<HTMLElement>) => {
         onClick?.(e)
-        share?.()
+        if (isSupported) {
+          await share?.()
+        } else {
+          console.warn('Native share not supported on this device')
+        }
       },
     [share],
   )

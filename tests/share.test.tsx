@@ -23,6 +23,7 @@ describe('Sync share hook', () => {
     window.navigator.canShare = jest.fn(() => false)
     const { result } = renderHook(useMobileShare, { initialProps: { url: 'test', title: 'Hellp' } })
     expect(result.current.share).toBeUndefined()
+    expect(result.current.isSupported).toBe(false)
     expect(result.current.error).toBeNull()
   })
 
@@ -238,6 +239,7 @@ describe('Async share hook', () => {
       },
     })
     expect(result.current.share).toBeUndefined()
+    expect(result.current.isSupported).toBe(false)
     expect(result.current.error).toBeNull()
   })
 

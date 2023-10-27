@@ -17,6 +17,7 @@ export type SyncShareReturn = {
   share: (() => Promise<void>) | undefined
   error: Error | null
   success: boolean
+  isSupported: boolean
 }
 
 export type AsyncShareReturn = SyncShareReturn & {
